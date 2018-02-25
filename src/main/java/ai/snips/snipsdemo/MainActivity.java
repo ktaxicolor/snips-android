@@ -2,14 +2,13 @@ package ai.snips.snipsdemo;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
@@ -25,9 +24,8 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import ai.snips.hermes.IntentMessage;
 import ai.snips.hermes.SessionEndedMessage;
@@ -38,9 +36,16 @@ import ai.snips.queries.ontology.Slot;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity {
 
+public class MainActivity extends AppCompatActivity implements Callback {
+
+    private final OkHttpClient client = new OkHttpClient();
     private static final int AUDIO_ECHO_REQUEST = 0;
     private static final String TAG = "MainActivity";
 
@@ -65,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         ensurePermissions();
+        getArtist();
 
         findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -253,7 +259,54 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //CDispatch music commands
+    private void getArtist ()
+    {
+        if (!isConnected()) {
+        Toast.makeText(this, "Aucune connexion à internet.", Toast.LENGTH_LONG).show();
+        return;
+        }
+
+        Request request = new Request.Builder().url("https://api.deezer.com/search?q=david-bowie&limit=1&output=json").build();
+
+        client.newCall(request).enqueue(this);
+    }
+
+    private boolean isConnected() {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
+    }
+
+    @Override
+    public void onFailure(Call call, IOException e) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //Toast.makeText("fail",Toast.LENGTH_SHORT);
+            }
+        });
+    }
+
+    @Override
+    public void onResponse(Call call, Response response) throws IOException {
+        if (!response.isSuccessful()) {
+            throw new IOException(response.toString());
+        }
+
+        final String body = response.body().string();
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //resultsTextView.setText(body);
+
+            }
+        });
+    }
+
+
+    // Dispatch music commands
     private void playNextSong() {
         AudioManager mAudioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
@@ -289,8 +342,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void playArtist(IntentMessage intent)
-    {
+    private void playArtist(IntentMessage intent) {
         if(intent!= null)
         {
             List<Slot> slots = intent.getSlots();
@@ -300,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
                     String artist = slot.getRawValue();
 
                     //new GetDeezerIdTask().execute(artist);
-                    String artistDeezerId = DeezerApiConnector.getArtistDeezerID(artist);
+                    /*String artistDeezerId = DeezerApiConnector.getArtistDeezerID(artist);
 
                     Uri uri = Uri.parse("https://www.deezer.com/artist/"+artistDeezerId+"?autoplay=true");
                     Intent deezerIntent = new Intent(Intent.ACTION_VIEW, uri);
@@ -314,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
                     if (isIntentSafe) {
                         startActivity(deezerIntent);
                     }
-
+*/
                 }
             }
         }

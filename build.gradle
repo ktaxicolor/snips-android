@@ -53,17 +53,17 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     implementation 'com.android.support:appcompat-v7:27.+'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-
     implementation 'net.java.dev.jna:jna:4.5.0@aar'
     implementation('ai.snips:snips-platform-android:0.52.7@aar') {
         transitive = true
     }
-
     testImplementation 'junit:junit:4.12'
+    implementation project(':okio-1.14.0')
+    implementation project(':okhttp-3.10.0')
 }
