@@ -1,29 +1,40 @@
 package ai.snips.snipsdemo;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 import java.io.File;
+import java.util.List;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import ai.snips.hermes.IntentMessage;
 import ai.snips.hermes.SessionEndedMessage;
 import ai.snips.hermes.SessionQueuedMessage;
 import ai.snips.hermes.SessionStartedMessage;
 import ai.snips.megazord.Megazord;
+import ai.snips.queries.ontology.Slot;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
@@ -36,6 +47,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int FREQUENCY = 16_000;
     private static final int CHANNEL = AudioFormat.CHANNEL_IN_MONO;
     private static final int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
+    public static final String SPEAKER_INTERRUPT = "speakerInterrupt";
+    public static final String NEXT_SONG = "nextSong";
+    public static final String RESUME_MUSIC = "resumeMusic";
+    public static final String PLAY_ARTIST = "playArtist";
+    public static final String NOT_IMPLEMENTED_MSG = "Not implemented, sorry not sorry!";
+    public static final String NO_MUSIC_MSG = "No music to play  with :'(";
 
     // Snips platform codename for android port is Megazord
     private static Megazord megazord;
@@ -131,10 +148,24 @@ public class MainActivity extends AppCompatActivity {
                 public Unit invoke(IntentMessage intentMessage) {
                     Log.d(TAG, "received an intent: " + intentMessage);
                     // Do your magic here :D
+                    // Music related intents :
+                    String intentName = intentMessage.getIntent().getIntentName();
+                    switch (intentName) {
+                        case SPEAKER_INTERRUPT: pauseMusic();
+                        break;
+                        case NEXT_SONG: playNextSong();
+                        break;
+                        case RESUME_MUSIC: playMusic();
+                        break;
+                        case PLAY_ARTIST: playArtist(intentMessage);
+                        default: notImplementedToastDisplay();
+                    }
 
                     megazord.endSession(intentMessage.getSessionId(), null);
                     return null;
                 }
+
+
             });
 
             megazord.setOnListeningStateChangedListener(new Function1<Boolean, Unit>() {
@@ -201,7 +232,8 @@ public class MainActivity extends AppCompatActivity {
 
             megazord.start(); // no way to stop it yet, coming soon
         }
-    }
+
+}
 
     private void runStreaming() {
         final int minBufferSizeInBytes = AudioRecord.getMinBufferSize(FREQUENCY, CHANNEL, ENCODING);
@@ -219,4 +251,79 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
+    //CDispatch music commands
+    private void playNextSong() {
+        AudioManager mAudioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+
+        if(mAudioManager.isMusicActive()) {
+            KeyEvent event = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT);
+            mAudioManager.dispatchMediaKeyEvent(event);
+        }else{
+            Toast.makeText(this, NO_MUSIC_MSG, Toast.LENGTH_SHORT);
+        }
+    }
+
+    private void pauseMusic() {
+        AudioManager mAudioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+
+        if(mAudioManager.isMusicActive()) {
+            KeyEvent event = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PAUSE);
+            mAudioManager.dispatchMediaKeyEvent(event);
+        }
+        else{
+            Toast.makeText(this, NO_MUSIC_MSG, Toast.LENGTH_SHORT);
+        }
+
+    }
+
+    private void playMusic() {
+        AudioManager mAudioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+
+        if(!mAudioManager.isMusicActive()) {
+            KeyEvent event = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY);
+            mAudioManager.dispatchMediaKeyEvent(event);
+        }else {
+            Toast.makeText(this, NO_MUSIC_MSG, Toast.LENGTH_SHORT);
+        }
+    }
+
+    private void playArtist(IntentMessage intent)
+    {
+        if(intent!= null)
+        {
+            List<Slot> slots = intent.getSlots();
+            for(Slot slot : slots){
+                if(slot.getSlotName().equals("artist") && slot.getValue()!=null)
+                {
+                    String artist = slot.getRawValue();
+
+                    //new GetDeezerIdTask().execute(artist);
+                    String artistDeezerId = DeezerApiConnector.getArtistDeezerID(artist);
+
+                    Uri uri = Uri.parse("https://www.deezer.com/artist/"+artistDeezerId+"?autoplay=true");
+                    Intent deezerIntent = new Intent(Intent.ACTION_VIEW, uri);
+
+                    // Verify it resolves
+                    PackageManager packageManager = getPackageManager();
+                    List<ResolveInfo> activities = packageManager.queryIntentActivities(deezerIntent, 0);
+                    boolean isIntentSafe = activities.size() > 0;
+
+                    // Start an activity if it's safe
+                    if (isIntentSafe) {
+                        startActivity(deezerIntent);
+                    }
+
+                }
+            }
+        }
+    }
+
+    private void notImplementedToastDisplay() {
+        Toast.makeText(this, NOT_IMPLEMENTED_MSG, Toast.LENGTH_SHORT);
+    }
+
+
+
 }

@@ -26,7 +26,7 @@
 
         <Button
             android:id="@+id/start"
-            style="@style/Widget.AppCompat.Button"
+            style="@android:style/Widget.Material.Light.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/start" />
