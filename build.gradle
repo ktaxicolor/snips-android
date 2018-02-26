@@ -64,6 +64,6 @@ dependencies {
         transitive = true
     }
     testImplementation 'junit:junit:4.12'
-    implementation project(':okio-1.14.0')
-    implementation project(':okhttp-3.10.0')
+    implementation files('okhttp-3.10.0/okhttp-3.10.0.jar')
+    implementation files('okio-1.14.0/okio-1.14.0.jar')
 }
