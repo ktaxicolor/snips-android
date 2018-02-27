@@ -2,15 +2,15 @@
 **/!\ Warning : 
 This project is ongoing and in its first stages. It is not stable !**
 
-# Android assistant with Snips
+# Android vocal assistant with Snips
 
 Based on https://github.com/snipsco/snips-platform-android-demo  
-Snips is a privacy-by-design opensource vocal assistant you can find at https://github.com/snipsco or http://www.snips.ai/
+Snips is a privacy-by-design opensource vocal assistant you can find at https://github.com/snipsco and at http://www.snips.ai/
 
 This project is an Android app using Snips vocal assistant.  
 Features : 
 - Music control : 
-    - pause/play, next song, volume controls > compatible with all android media apps (use Android keys)
+    - pause/play, next song, volume controls > compatible with all android media apps (uses Android keys)
     - open music app and play artist/song/playlist > only Deezer for now
 
 
