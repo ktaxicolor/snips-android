@@ -5,7 +5,7 @@ This project is ongoing and in its first stages. It is not stable !**
 # Android assistant with Snips
 
 Based on https://github.com/snipsco/snips-platform-android-demo  
-Snips is an privacy-by-design opensource vocal assistant you can find at https://github.com/snipsco or http://www.snips.ai/
+Snips is a privacy-by-design opensource vocal assistant you can find at https://github.com/snipsco or http://www.snips.ai/
 
 This project is an Android app using Snips vocal assistant.  
 Features : 
