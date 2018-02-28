@@ -4,7 +4,9 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -63,8 +65,10 @@ public class MainActivity extends AppCompatActivity {
     // Snips platform codename for android port is Megazord
     private static Megazord megazord;
     private AudioRecord recorder;
+    private MediaPlayer mediaPlayer;
 
-    //private ExecuteIntentTask intentTask;
+    private String assistantDirPath;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +77,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ensurePermissions();
 
-        //intentTask = new ExecuteIntentTask(this);
+        mediaPlayer = new MediaPlayer();
+        //end_of_input.wav
+        //error.wav
+
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         findViewById(R.id.start).setOnClickListener(new View.OnClickListener() {
 
@@ -136,6 +144,13 @@ public class MainActivity extends AppCompatActivity {
             // a dir where the assistant models was unziped. it should contain the folders asr dialogue hotword and nlu
             File assistantDir = new File(Environment.getExternalStorageDirectory().toString(), "snips_android_assistant");
 
+            try{
+                mediaPlayer.setDataSource(assistantDir.getPath().concat("/custom_dialogue/sound/start_of_input.wav"));
+            }catch(IOException e){
+                e.printStackTrace();
+            }
+            //assistantDirPath = assistantDir.getPath();
+
             megazord = Megazord.builder(assistantDir)
                     .enableDialogue(true) // defaults to true
                     .enableHotword(true) // defaults to true
@@ -148,7 +163,16 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public Unit invoke() {
                     Log.d(TAG, "an hotword was detected !");
-                    // Do your magic here :D
+
+                    // Sound feedback
+                    try{
+                        mediaPlayer.prepare();
+                        mediaPlayer.start();
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
+                    //(AudioManager) context.getSystemService(Context.AUDIO_SERVICE).playSoundEffect(AudioManager.FX_KEY_CLICK)
+
                     return null;
                 }
             });
