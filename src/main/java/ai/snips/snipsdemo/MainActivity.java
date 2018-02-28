@@ -21,6 +21,7 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 
 import ai.snips.hermes.IntentMessage;
 import ai.snips.hermes.SessionEndedMessage;
@@ -47,9 +48,14 @@ public class MainActivity extends AppCompatActivity {
     public static final String SPEAKER_INTERRUPT = "speakerInterrupt";
     public static final String NEXT_SONG = "nextSong";
     public static final String RESUME_MUSIC = "resumeMusic";
-    public static final String PLAY_ARTIST = "playArtist";
     public static final String VOLUME_UP = "volumeUp";
     public static final String VOLUME_DOWN = "volumeDown";
+    public static final String VOLUME_SET = "volumeSet";
+    public static final String PLAY_ARTIST = "taxicolor:playArtist";
+    public static final String PLAY_ALBUM = "taxicolor:playAlbum";
+    public static final String PLAY_SONG = "playSong";
+    public static final String PLAY_PLAYLIST = "playPlaylist";
+
 
     public static final String NOT_IMPLEMENTED_MSG = "Not implemented, sorry not sorry!";
 
@@ -276,12 +282,25 @@ public class MainActivity extends AppCompatActivity {
                     case VOLUME_DOWN:
                         MusicManager.volumeDown(context);
                         break;
+                    case VOLUME_SET:
+                        MusicManager.setVolume(context, intents[0]);
+                        break;
                     case NEXT_SONG:
                         MusicManager.playNextSong(context);
                         break;
                     case PLAY_ARTIST:
                         MusicManager.playArtist(context, intents[0]);
                         break;
+                    case PLAY_ALBUM:
+                        MusicManager.playAlbum(context, intents[0]);
+                        break;
+                    case PLAY_SONG:
+                        MusicManager.playSong(context, intents[0]);
+                        break;
+                    case PLAY_PLAYLIST:
+                        MusicManager.playPlaylist(context, intents[0]);
+                        break;
+
                     default:
                         notImplementedToastDisplay();
                 }
