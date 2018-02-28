@@ -149,7 +149,6 @@ public class MainActivity extends AppCompatActivity {
             }catch(IOException e){
                 e.printStackTrace();
             }
-            //assistantDirPath = assistantDir.getPath();
 
             megazord = Megazord.builder(assistantDir)
                     .enableDialogue(true) // defaults to true

@@ -38,6 +38,9 @@ public final class MusicManager {
     private static final String DEEZER_JSON_ARTIST = "artist";
     private static final String DEEZER_JSON_ALBUM = "album";
 
+    private enum VOLUME_LEVELS_SNIPS { ZERO, UN, DEUX, TROIS, QUATRE, CINQ, SIX, SEPT, HUIT, NEUF, DIX };
+    private static final int ILLEGAL_VOLUME = 999;
+
     public static final String NULL_ID = "0";
 
     private static final OkHttpClient client = new OkHttpClient();
@@ -87,17 +90,26 @@ public final class MusicManager {
             for (Slot slot : slots) {
                 if (slot.getSlotName().equals("volume_set_fr") && slot.getValue() != null) {
                     try {
-                        int volume = Integer.parseInt(slot.getRawValue());
-
-                        if (volume != 0) {
+                        int volume = ILLEGAL_VOLUME;
+                        for(VOLUME_LEVELS_SNIPS vol : VOLUME_LEVELS_SNIPS.values())
+                        {
+                            if(slot.getRawValue().toUpperCase().equals(vol.name().toUpperCase()))
+                            {
+                                volume = vol.ordinal() * 2;
+                                break;
+                            }
+                        }
+                        if (volume != ILLEGAL_VOLUME) {
                             // 2) Change the volume
                             AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-                            if (volume <= mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
-                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_PLAY_SOUND);
+                            if (volume > mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
+                                volume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
                             }
+                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_PLAY_SOUND);
                         }
                     } catch (NumberFormatException e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -140,7 +152,7 @@ public final class MusicManager {
                 // Top tracks
                 //startDeezerActivity(context, "https://www.deezer.com/artist/" + artistDeezerId + "/top_track?autoplay=true");
                 // or  mix based on artist
-                startDeezerActivity(context, "https://www.deezer.com/artist/" + artistDeezerId + "autoplay=true");
+                startDeezerActivity(context, "https://www.deezer.com/artist/" + artistDeezerId + "?autoplay=true");
             }
         }
     }
