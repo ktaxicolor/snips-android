@@ -80,26 +80,26 @@ public final class MusicManager {
     }
 
     public static void setVolume(Context context, IntentMessage intent){
-        if (intent != null) {return;}
+        if (intent != null) {
 
-        // 1) Get the volume level
-        List<Slot> slots = intent.getSlots();
-        for (Slot slot : slots) {
-            if (slot.getSlotName().equals("volume_set_fr") && slot.getValue() != null) {
-                try {
-                    int volume = Integer.parseInt(slot.getRawValue());
+            // 1) Get the volume level
+            List<Slot> slots = intent.getSlots();
+            for (Slot slot : slots) {
+                if (slot.getSlotName().equals("volume_set_fr") && slot.getValue() != null) {
+                    try {
+                        int volume = Integer.parseInt(slot.getRawValue());
 
-                    if (volume != 0) {
-                        // 2) Change the volume
-                        AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                        if (volume != 0) {
+                            // 2) Change the volume
+                            AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-                        if (volume <= mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
-                            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_PLAY_SOUND);
+                            if (volume <= mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
+                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_PLAY_SOUND);
+                            }
                         }
+                    } catch (NumberFormatException e) {
                     }
                 }
-                catch (NumberFormatException e)
-                {}
             }
         }
     }
