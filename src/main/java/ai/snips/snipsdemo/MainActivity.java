@@ -50,9 +50,9 @@ public class MainActivity extends AppCompatActivity {
     public static final String SPEAKER_INTERRUPT = "speakerInterrupt";
     public static final String NEXT_SONG = "nextSong";
     public static final String RESUME_MUSIC = "resumeMusic";
-    public static final String VOLUME_UP = "volumeUp";
+    public static final String VOLUME_UP = "taxicolor:volumeUp";
     public static final String VOLUME_DOWN = "volumeDown";
-    public static final String VOLUME_SET = "volumeSet";
+    public static final String VOLUME_SET = "taxicolor:volumeSet";
     public static final String PLAY_ARTIST = "taxicolor:playArtist";
     public static final String PLAY_ALBUM = "taxicolor:playAlbum";
     public static final String PLAY_SONG = "playSong";
@@ -64,10 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Snips platform codename for android port is Megazord
     private static Megazord megazord;
-    private AudioRecord recorder;
     private MediaPlayer mediaPlayer;
-
-    private String assistantDirPath;
 
 
     @Override
@@ -263,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
         final int minBufferSizeInBytes = AudioRecord.getMinBufferSize(FREQUENCY, CHANNEL, ENCODING);
         Log.d(TAG, "minBufferSizeInBytes: " + minBufferSizeInBytes);
 
-        recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, FREQUENCY, CHANNEL, ENCODING, minBufferSizeInBytes);
+        AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, FREQUENCY, CHANNEL, ENCODING, minBufferSizeInBytes);
         recorder.startRecording();
 
         // In a non demo app, you want to have a way to stop this :)
@@ -300,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
                         MusicManager.playMusic(context);
                         break;
                     case VOLUME_UP:
-                        MusicManager.volumeUp(context);
+                        MusicManager.volumeUp(context, intents[0]);
                         break;
                     case VOLUME_DOWN:
                         MusicManager.volumeDown(context);

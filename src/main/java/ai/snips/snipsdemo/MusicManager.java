@@ -34,12 +34,18 @@ public final class MusicManager {
 
     private static final String SLOT_ARTIST = "artist";
     private static final String SLOT_ALBUM = "album";
+    private static final String SLOT_VOLUME_UP = "volume_higher_fr";
+    private static final String SLOT_VOLUME_SET = "volume_set_fr";
 
     private static final String DEEZER_JSON_ARTIST = "artist";
     private static final String DEEZER_JSON_ALBUM = "album";
 
-    private enum VOLUME_LEVELS_SNIPS { ZERO, UN, DEUX, TROIS, QUATRE, CINQ, SIX, SEPT, HUIT, NEUF, DIX };
+    private enum VOLUME_LEVELS_SNIPS { ZERO, UN, DEUX, TROIS, QUATRE, CINQ, SIX, SEPT, HUIT, NEUF, DIX, MAX }
+    // TODO : Android goes to 16 but Snips' Natural Language Understanding stops at 10
+
+    private static final String MAX_VOLUME_NAME = "MAX";
     private static final int ILLEGAL_VOLUME = 999;
+    private static final int MAX_VOLUME_VALUE = 100;
 
     public static final String NULL_ID = "0";
 
@@ -69,44 +75,59 @@ public final class MusicManager {
         }
     }
 
-    public static void volumeUp(Context context){
+    static void volumeUp(Context context, IntentMessage intent){
         AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        if(mAudioManager != null && intent != null) {
+            List<Slot> slots = intent.getSlots();
+            if( slots.size() >0){
+                // => A number of units to raise the music volume is specified
+                for (Slot slot : slots) {
+                    if (slot.getSlotName().equals(SLOT_VOLUME_UP) &&!slot.getValue().toString().equals("")) {
+                        int volumeUnits = getVolumeLevel(slot);
+                        if (volumeUnits != ILLEGAL_VOLUME) {
+                            if (volumeUnits == MAX_VOLUME_VALUE || volumeUnits > mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
+                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), AudioManager.FLAG_PLAY_SOUND);
+                            } else {
+                                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                                        mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC) + volumeUnits,
+                                        AudioManager.FLAG_PLAY_SOUND);
+                            }
+                        }
 
-        mAudioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_PLAY_SOUND);
-
+                    }
+                }
+            } else {
+                // => We just raise by one unit
+                mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_PLAY_SOUND);
+            }
+        }
     }
 
-    public static void volumeDown(Context context){
+    static void volumeDown(Context context){
         AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
         mAudioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND);
     }
 
-    public static void setVolume(Context context, IntentMessage intent){
+    static void setVolume(Context context, IntentMessage intent){
         if (intent != null) {
 
             // 1) Get the volume level
             List<Slot> slots = intent.getSlots();
             for (Slot slot : slots) {
-                if (slot.getSlotName().equals("volume_set_fr") && slot.getValue() != null) {
+                if (slot.getSlotName().equals(SLOT_VOLUME_SET) && !slot.getValue().toString().equals("")) {
                     try {
-                        int volume = ILLEGAL_VOLUME;
-                        for(VOLUME_LEVELS_SNIPS vol : VOLUME_LEVELS_SNIPS.values())
-                        {
-                            if(slot.getRawValue().toUpperCase().equals(vol.name().toUpperCase()))
-                            {
-                                volume = vol.ordinal() * 2;
-                                break;
-                            }
-                        }
+                        int volume = getVolumeLevel(slot);
                         if (volume != ILLEGAL_VOLUME) {
                             // 2) Change the volume
                             AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-                            if (volume > mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
-                                volume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-                            }
+                            if (mAudioManager != null){
+                                if(volume == MAX_VOLUME_VALUE || volume > mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)) {
+                                    volume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+                                }
                             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_PLAY_SOUND);
+                            }
                         }
                     } catch (NumberFormatException e) {
                         e.printStackTrace();
@@ -116,14 +137,33 @@ public final class MusicManager {
         }
     }
 
-    public static void playNextSong(Context context) {
-        AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+    private static int getVolumeLevel(Slot slot) {
+        for(VOLUME_LEVELS_SNIPS vol : VOLUME_LEVELS_SNIPS.values())
+        {
+            if(slot.getRawValue().toUpperCase().equals(vol.name().toUpperCase()))
+            {
+                if(vol.name().equals(MAX_VOLUME_NAME))
+                {
+                    return MAX_VOLUME_VALUE;
+                }
+                else {
+                    return vol.ordinal();
+                }
 
-        if (mAudioManager.isMusicActive()) {
-            KeyEvent event = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT);
-            mAudioManager.dispatchMediaKeyEvent(event);
-        } else {
-            Toast.makeText(context, NO_MUSIC_MSG, Toast.LENGTH_SHORT);
+            }
+        }
+        return ILLEGAL_VOLUME;
+    }
+
+    static void playNextSong(Context context) {
+        AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        if(mAudioManager != null) {
+            if (mAudioManager.isMusicActive()) {
+                KeyEvent event = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT);
+                mAudioManager.dispatchMediaKeyEvent(event);
+            } else {
+                Toast.makeText(context, NO_MUSIC_MSG, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
