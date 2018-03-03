@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (ensurePermissions()) {
-                    final Button button = (Button) findViewById(R.id.start);
+                    final Button button = findViewById(R.id.start);
                     button.setEnabled(false);
                     button.setText(R.string.loading);
 
@@ -276,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
 
     private class ExecuteIntentTask extends AsyncTask<IntentMessage, Void, Void > {
         private Context context;
-        public ExecuteIntentTask(Context context) {
+        ExecuteIntentTask(Context context) {
             this.context = context;
         }
 
@@ -339,6 +339,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void notImplementedToastDisplay() {
-        Toast.makeText(this, NOT_IMPLEMENTED_MSG, Toast.LENGTH_SHORT);
+        Toast.makeText(this, NOT_IMPLEMENTED_MSG, Toast.LENGTH_SHORT).show();
     }
 }

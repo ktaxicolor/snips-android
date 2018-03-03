@@ -28,9 +28,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public final class MusicManager {
-    public static final String NO_MUSIC_MSG = "No music to play  with :'(";
-    public static final String NO_INTERNET_MSG = "Please connect yoself to the internet";
-    public static final String NO_ARTIST_MSG = "Artist was not found";
+    private static final String NO_MUSIC_MSG = "No music to play  with :'(";
+    private static final String NO_INTERNET_MSG = "Please connect yoself to the internet";
+    private static final String NO_ARTIST_MSG = "Artist was not found";
 
     private static final String SLOT_ARTIST = "artist";
     private static final String SLOT_ALBUM = "album";
@@ -47,12 +47,12 @@ public final class MusicManager {
     private static final int ILLEGAL_VOLUME = 999;
     private static final int MAX_VOLUME_VALUE = 100;
 
-    public static final String NULL_ID = "0";
+    private static final String NULL_ID = "0";
 
     private static final OkHttpClient client = new OkHttpClient();
 
 
-    public static void pauseMusic(Context context) {
+    static void pauseMusic(Context context) {
         AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
         if (mAudioManager.isMusicActive()) {
@@ -64,7 +64,7 @@ public final class MusicManager {
 
     }
 
-    public static void playMusic(Context context) {
+    static void playMusic(Context context) {
         AudioManager mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
         if (!mAudioManager.isMusicActive()) {
@@ -177,7 +177,7 @@ public final class MusicManager {
         return "";
     }
 
-    public static void playArtist(Context context, IntentMessage intent) {
+    static void playArtist(Context context, IntentMessage intent) {
         if (intent != null) {
             String artist = getSlotRawValue(intent, SLOT_ARTIST);
 
@@ -197,7 +197,7 @@ public final class MusicManager {
         }
     }
 
-    public static void playAlbum(Context context, IntentMessage intent) {
+    static void playAlbum(Context context, IntentMessage intent) {
         if (intent != null) {
             String album = getSlotRawValue(intent, SLOT_ALBUM);
             String artist = getSlotRawValue(intent, SLOT_ARTIST);
@@ -218,10 +218,10 @@ public final class MusicManager {
     }
 
 
-    public static void playSong(Context context, IntentMessage intent) {
+    static void playSong(Context context, IntentMessage intent) {
     }
 
-    public static void playPlaylist(Context context, IntentMessage intent) {
+    static void playPlaylist(Context context, IntentMessage intent) {
     }
 
     private static String getArtistId(Context context, String artistName) throws IOException {
@@ -244,7 +244,7 @@ public final class MusicManager {
     }
 
     private static String getAlbumId(Context context, String albumName, String artistName) throws IOException {
-        String albumId = "";
+        String albumId;
         if (!isConnected(context)) {
             Toast.makeText(context, NO_INTERNET_MSG, Toast.LENGTH_LONG).show();
             return NULL_ID;
@@ -265,8 +265,11 @@ public final class MusicManager {
     private static boolean isConnected(Context context) {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo != null && networkInfo.isConnected();
+        if(connectivityManager != null) {
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            return networkInfo != null && networkInfo.isConnected();
+        }
+        return false;
     }
 
     private static String parseId(String jsonAsString, String jsonParam)
